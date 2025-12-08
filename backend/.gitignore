@@ -1,0 +1,12 @@
+cat > .gitignore <<'EOF'
+/bin/
+/vendor/
+/.env
+*.exe
+*.log
+.idea/
+.vscode/
+*.db
+.DS_Store
+
+Note.Command
