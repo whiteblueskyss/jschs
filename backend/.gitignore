@@ -1,12 +1,59 @@
 cat > .gitignore <<'EOF'
+# Binaries
 /bin/
-/vendor/
-/.env
 *.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+/vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
 *.log
+logs/
+
+# IDE
 .idea/
 .vscode/
-*.db
-.DS_Store
+*.swp
+*.swo
+*~
 
+# OS files
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Personal notes
 Note.Command
+notes.txt
+TODO.md
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Build cache
+.cache/
