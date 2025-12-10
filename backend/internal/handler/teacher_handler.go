@@ -109,10 +109,22 @@ func (h *teacherHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(t)
 }
 
-// Optional: small helper to register routes in router
+// GET /teachers
+func (h *teacherHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	list, err := h.svc.GetAll(r.Context())
+	if err != nil {
+		http.Error(w, "failed to fetch teachers: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(list)
+}
+
+// small helper to register routes in router
 func (h *teacherHandler) Routes(r chi.Router) {
 	r.Post("/teachers", h.RegisterHandler)
 	r.Get("/teachers/{id}", h.GetByID)
+	r.Get("/teachers", h.GetAll)
 }
 
 // If need GetByID later: have to use chi.URLParam(r, "id") and uuid.Parse

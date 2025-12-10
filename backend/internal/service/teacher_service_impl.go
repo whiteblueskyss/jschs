@@ -60,9 +60,16 @@ func (s *teacherService) Get(ctx context.Context, id uuid.UUID) (*model.Teacher,
 	return t, nil
 }
 
-// GetAll is not implemented yet.
 func (s *teacherService) GetAll(ctx context.Context) ([]*model.Teacher, error) {
-	return nil, errors.New("not implemented")
+	list, err := s.repo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	// hide password hashes
+	for _, t := range list {
+		t.PasswordHash = ""
+	}
+	return list, nil
 }
 
 // Authenticate is not implemented yet.

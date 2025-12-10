@@ -103,7 +103,54 @@ func (r *teacherRepo) GetByID(ctx context.Context, id uuid.UUID) (*model.Teacher
 }
 
 func (r *teacherRepo) GetAll(ctx context.Context) ([]*model.Teacher, error) {
-	return nil, nil
+	const q = `
+		SELECT id, email, password_hash, full_name, phone, is_active,
+			photo, date_of_birth, joining_date, gender, bio, address,
+			designation, qualification
+		FROM teachers
+		ORDER BY full_name NULLS LAST;
+		`
+
+	rows, err := r.db.Query(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []*model.Teacher
+	for rows.Next() {
+		var t model.Teacher
+		var dob, jdate *string
+		if err := rows.Scan(
+			&t.ID,
+			&t.Email,
+			&t.PasswordHash,
+			&t.FullName,
+			&t.Phone,
+			&t.IsActive,
+			&t.Photo,
+			&dob,
+			&jdate,
+			&t.Gender,
+			&t.Bio,
+			&t.Address,
+			&t.Designation,
+			&t.Qualification,
+		); err != nil {
+			return nil, err
+		}
+		if dob != nil {
+			t.DateOfBirth = *dob
+		}
+		if jdate != nil {
+			t.JoiningDate = *jdate
+		}
+		list = append(list, &t)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return list, nil
 }
 
 func (r *teacherRepo) Update(ctx context.Context, t *model.Teacher) (*model.Teacher, error) {
