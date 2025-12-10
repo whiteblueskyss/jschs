@@ -59,7 +59,47 @@ func (r *teacherRepo) Create(ctx context.Context, t *model.Teacher) (*model.Teac
 }
 
 func (r *teacherRepo) GetByID(ctx context.Context, id uuid.UUID) (*model.Teacher, error) {
-	return nil, nil
+	const q = `
+			SELECT id, email, password_hash, full_name, phone, is_active,
+				photo, date_of_birth, joining_date, gender, bio, address,
+				designation, qualification
+			FROM teachers
+			WHERE id = $1
+			LIMIT 1;
+			`
+
+	row := r.db.QueryRow(ctx, q, id)
+
+	var t model.Teacher
+	var dob, jdate *string // we stored dates as NULLABLE strings in model; adapt if using time.Time
+	err := row.Scan(
+		&t.ID,
+		&t.Email,
+		&t.PasswordHash,
+		&t.FullName,
+		&t.Phone,
+		&t.IsActive,
+		&t.Photo,
+		&dob,
+		&jdate,
+		&t.Gender,
+		&t.Bio,
+		&t.Address,
+		&t.Designation,
+		&t.Qualification,
+	)
+	if err != nil {
+		// pgx returns ErrNoRows when not found
+		return nil, err
+	}
+	if dob != nil {
+		t.DateOfBirth = *dob
+	}
+	if jdate != nil {
+		t.JoiningDate = *jdate
+	}
+	// For safety, do not expose password hash to callers (service will clear before returning to client)
+	return &t, nil
 }
 
 func (r *teacherRepo) GetAll(ctx context.Context) ([]*model.Teacher, error) {

@@ -48,9 +48,16 @@ func (s *teacherService) Register(ctx context.Context, t *model.Teacher, plainPa
 	return created, nil
 }
 
-// Get is not implemented yet.
 func (s *teacherService) Get(ctx context.Context, id uuid.UUID) (*model.Teacher, error) {
-	return nil, errors.New("not implemented")
+	t, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	// defensive: hide password hash when returning to callers
+	if t != nil {
+		t.PasswordHash = ""
+	}
+	return t, nil
 }
 
 // GetAll is not implemented yet.

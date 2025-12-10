@@ -85,9 +85,34 @@ func (h *teacherHandler) RegisterHandler(w http.ResponseWriter, r *http.Request)
 	_ = json.NewEncoder(w).Encode(created)
 }
 
+// GET /teachers/{id}
+func (h *teacherHandler) GetByID(w http.ResponseWriter, r *http.Request) {
+	id, err := getIDParam(r, "id")
+	if err != nil {
+		http.Error(w, "invalid id parameter", http.StatusBadRequest)
+		return
+	}
+
+	t, err := h.svc.Get(r.Context(), id)
+	if err != nil {
+		// if not found, return 404 for common pgx ErrNoRows
+		// compare error string or better: import pgx.ErrNoRows if you want exact check
+		http.Error(w, "teacher not found", http.StatusNotFound)
+		return
+	}
+	if t == nil {
+		http.Error(w, "teacher not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(t)
+}
+
 // Optional: small helper to register routes in router
 func (h *teacherHandler) Routes(r chi.Router) {
 	r.Post("/teachers", h.RegisterHandler)
+	r.Get("/teachers/{id}", h.GetByID)
 }
 
 // If need GetByID later: have to use chi.URLParam(r, "id") and uuid.Parse
