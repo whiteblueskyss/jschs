@@ -68,3 +68,65 @@ DB query context cancelled
 All goroutines spawned using that ctx stop
 
 This makes system behavior predictable, resource-safe, and easy to test.
+
+2. Responsibilities of Each Layer (very important)
+   2.1 Handler (HTTP layer)
+
+Role:
+
+Reads HTTP request JSON
+
+Validates basic input
+
+Calls service functions
+
+Sends JSON response back
+
+Handler does NOT:
+
+Hash passwords
+
+Talk to the database
+
+Implement business rules
+
+Handlers only handle HTTP.
+
+You can think:
+Handler ≈ “Controller”
+
+2.2 Service (Business logic layer)
+
+Role:
+
+Hash password
+
+Validate business rules
+
+Check email existing or not
+
+Call repository
+
+Build final model
+
+Service does NOT know anything about HTTP.
+
+Service ≈ “Brain of your feature”
+
+2.3 Repository (Database Access Layer)
+
+Role:
+
+Executes SQL queries
+
+Inserts / updates / fetches rows
+
+Converts DB rows to Go structs
+
+Repository does NOT know passwords, validation, HTTP, or rules.
+
+Repository ≈ “Database worker”
+
+2.4 Database
+
+Stores the final teacher row.

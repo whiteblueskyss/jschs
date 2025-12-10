@@ -6,7 +6,7 @@ import "github.com/google/uuid"
 type Teacher struct {
 	ID            uuid.UUID `json:"id"` // primary key
 	Email         string    `json:"email"`
-	PasswordHash  string    `json:"-"` // omit in JSON output
+	PasswordHash  string    `json:"-"` // omit in JSON output for security
 	FullName      string    `json:"full_name"`
 	Phone         string    `json:"phone"`
 	IsActive      bool      `json:"is_active"`
