@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"github.com/whiteblueskyss/jschs/backend/internal/model"
 	"github.com/whiteblueskyss/jschs/backend/internal/service"
@@ -20,17 +21,20 @@ func NewTeacherHandler(s service.TeacherService) *teacherHandler {
 	return &teacherHandler{svc: s}
 }
 
+var validate = validator.New()
+
 // create request payload
+// i will use password "password"
 type createTeacherRequest struct {
-	Email         string `json:"email"`
-	Password      string `json:"password"`
-	FullName      string `json:"full_name"`
-	Phone         string `json:"phone"`
+	Email         string `json:"email" validate:"required,email"`
+	Password      string `json:"password" validate:"required,min=4"`
+	FullName      string `json:"full_name" validate:"required,min=2"`
+	Phone         string `json:"phone" validate:"required"`
 	IsActive      *bool  `json:"is_active,omitempty"`
 	Photo         string `json:"photo,omitempty"`
-	DateOfBirth   string `json:"date_of_birth,omitempty"`
-	JoiningDate   string `json:"joining_date,omitempty"`
-	Gender        string `json:"gender,omitempty"`
+	DateOfBirth   string `json:"date_of_birth,omitempty" validate:"omitempty,datetime=2006-01-02"`
+	JoiningDate   string `json:"joining_date,omitempty" validate:"omitempty,datetime=2006-01-02"`
+	Gender        string `json:"gender,omitempty" validate:"omitempty,oneof=male female other"`
 	Bio           string `json:"bio,omitempty"`
 	Address       string `json:"address,omitempty"`
 	Designation   string `json:"designation,omitempty"`
@@ -44,9 +48,16 @@ func (h *teacherHandler) RegisterHandler(w http.ResponseWriter, r *http.Request)
 		http.Error(w, "invalid json payload", http.StatusBadRequest)
 		return
 	}
-	// basic validation
-	if req.Email == "" || req.Password == "" || req.FullName == "" {
-		http.Error(w, "email, password and full_name are required", http.StatusBadRequest)
+	// validation
+
+	if err := validate.Struct(req); err != nil {
+		// build a sensible message
+		if ve, ok := err.(validator.ValidationErrors); ok {
+			// return first validation error message
+			http.Error(w, ve.Error(), http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "validation error", http.StatusBadRequest)
 		return
 	}
 
