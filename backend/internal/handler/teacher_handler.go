@@ -131,11 +131,42 @@ func (h *teacherHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(list)
 }
 
+// PUT /teachers/{id}
+func (h *teacherHandler) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := getIDParam(r, "id")
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var req model.Teacher
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid json payload", http.StatusBadRequest)
+		return
+	}
+
+	// ensure the ID in path is authoritative
+	req.ID = id
+
+	// Do not allow password change via this route.
+	req.PasswordHash = "" // ensure repo doesn't replace password unless service calls ChangePassword.
+
+	updated, err := h.svc.UpdateProfile(r.Context(), &req)
+	if err != nil {
+		http.Error(w, "failed to update teacher: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(updated)
+}
+
 // small helper to register routes in router
 func (h *teacherHandler) Routes(r chi.Router) {
 	r.Post("/teachers", h.RegisterHandler)
 	r.Get("/teachers/{id}", h.GetByID)
 	r.Get("/teachers", h.GetAll)
+	r.Put("/teachers/{id}", h.Update)
 }
 
 // If need GetByID later: have to use chi.URLParam(r, "id") and uuid.Parse

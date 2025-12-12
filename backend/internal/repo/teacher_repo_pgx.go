@@ -154,7 +154,71 @@ func (r *teacherRepo) GetAll(ctx context.Context) ([]*model.Teacher, error) {
 }
 
 func (r *teacherRepo) Update(ctx context.Context, t *model.Teacher) (*model.Teacher, error) {
-	return nil, nil
+	const q = `
+UPDATE teachers SET
+    email = $1,
+    full_name = $2,
+    phone = $3,
+    is_active = $4,
+    photo = $5,
+    date_of_birth = NULLIF($6,'')::date,
+    joining_date = NULLIF($7,'')::date,
+    gender = $8,
+    bio = $9,
+    address = $10,
+    designation = $11,
+    qualification = $12,
+    password_hash = COALESCE(NULLIF($13, ''), password_hash)
+WHERE id = $14
+RETURNING id, email, password_hash, full_name, phone, is_active,
+          photo, date_of_birth, joining_date, gender, bio, address,
+          designation, qualification;
+`
+
+	row := r.db.QueryRow(ctx, q,
+		t.Email,
+		t.FullName,
+		t.Phone,
+		t.IsActive,
+		t.Photo,
+		t.DateOfBirth,
+		t.JoiningDate,
+		t.Gender,
+		t.Bio,
+		t.Address,
+		t.Designation,
+		t.Qualification,
+		t.PasswordHash, // if empty string, query keeps existing via COALESCE
+		t.ID,
+	)
+
+	var dob, jdate *string
+	var out model.Teacher
+	if err := row.Scan(
+		&out.ID,
+		&out.Email,
+		&out.PasswordHash,
+		&out.FullName,
+		&out.Phone,
+		&out.IsActive,
+		&out.Photo,
+		&dob,
+		&jdate,
+		&out.Gender,
+		&out.Bio,
+		&out.Address,
+		&out.Designation,
+		&out.Qualification,
+	); err != nil {
+		return nil, err
+	}
+	if dob != nil {
+		out.DateOfBirth = *dob
+	}
+	if jdate != nil {
+		out.JoiningDate = *jdate
+	}
+	return &out, nil
 }
 
 func (r *teacherRepo) Delete(ctx context.Context, id uuid.UUID) error {

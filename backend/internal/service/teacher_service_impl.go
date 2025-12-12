@@ -77,9 +77,21 @@ func (s *teacherService) Authenticate(ctx context.Context, email, plainPassword 
 	return nil, errors.New("not implemented")
 }
 
-// UpdateProfile is not implemented yet.
 func (s *teacherService) UpdateProfile(ctx context.Context, t *model.Teacher) (*model.Teacher, error) {
-	return nil, errors.New("not implemented")
+	if t == nil {
+		return nil, errors.New("teacher is nil")
+	}
+	// basic guard: ID must be present
+	if t.ID == uuid.Nil {
+		return nil, errors.New("missing id")
+	}
+	updated, err := s.repo.Update(ctx, t)
+	if err != nil {
+		return nil, err
+	}
+	// hide password hash before returning
+	updated.PasswordHash = ""
+	return updated, nil
 }
 
 // ChangePassword is not implemented yet.
