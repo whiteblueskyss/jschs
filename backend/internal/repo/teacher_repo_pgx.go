@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/whiteblueskyss/jschs/backend/internal/model"
 )
@@ -222,5 +223,13 @@ RETURNING id, email, password_hash, full_name, phone, is_active,
 }
 
 func (r *teacherRepo) Delete(ctx context.Context, id uuid.UUID) error {
+	const q = `DELETE FROM teachers WHERE id = $1;`
+	cmd, err := r.db.Exec(ctx, q, id)
+	if err != nil {
+		return err
+	}
+	if cmd.RowsAffected() == 0 {
+		return pgx.ErrNoRows
+	}
 	return nil
 }

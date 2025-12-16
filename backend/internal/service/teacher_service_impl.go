@@ -99,7 +99,9 @@ func (s *teacherService) ChangePassword(ctx context.Context, id uuid.UUID, newPl
 	return errors.New("not implemented")
 }
 
-// Delete is not implemented yet.
 func (s *teacherService) Delete(ctx context.Context, id uuid.UUID) error {
-	return errors.New("not implemented")
+	if id == uuid.Nil {
+		return errors.New("invalid id")
+	}
+	return s.repo.Delete(ctx, id)
 }

@@ -161,12 +161,29 @@ func (h *teacherHandler) Update(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(updated)
 }
 
+// DELETE /teachers/{id}
+func (h *teacherHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := getIDParam(r, "id")
+	if err != nil {
+		http.Error(w, "invalid id", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.svc.Delete(r.Context(), id); err != nil {
+		http.Error(w, "teacher not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent) // 204
+}
+
 // small helper to register routes in router
 func (h *teacherHandler) Routes(r chi.Router) {
 	r.Post("/teachers", h.RegisterHandler)
 	r.Get("/teachers/{id}", h.GetByID)
 	r.Get("/teachers", h.GetAll)
 	r.Put("/teachers/{id}", h.Update)
+	r.Delete("/teachers/{id}", h.Delete)
 }
 
 // If need GetByID later: have to use chi.URLParam(r, "id") and uuid.Parse
